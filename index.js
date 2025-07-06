@@ -9,6 +9,9 @@ app.use(cors({ origin: '*' }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Base URL for deployed backend
+const BASE_URL = 'https://walletlogs-sslc-backend.onrender.com';
+
 // In-memory store (not for production)
 const paymentStatusMap = {}; // { tran_id: status }
 const paymentDataMap = {}; // { tran_id: payment_data }
@@ -56,10 +59,10 @@ app.post('/initiate-payment', async (req, res) => {
     total_amount: amount,
     currency: 'BDT',
     tran_id,
-    success_url: 'http://localhost:3000/success',
-    fail_url: 'http://localhost:3000/fail',
-    cancel_url: 'http://localhost:3000/cancel',
-    ipn_url: 'http://localhost:3000/ipn', // IPN endpoint
+    success_url: `${BASE_URL}/success`,
+    fail_url: `${BASE_URL}/fail`,
+    cancel_url: `${BASE_URL}/cancel`,
+    ipn_url: `${BASE_URL}/ipn`, // IPN endpoint
     cus_name: customerName || 'Customer',
     cus_email: email,
     cus_phone: customerPhone || '01700000000',
@@ -649,6 +652,25 @@ app.post('/check-payment-with-sslc/:tran_id', async (req, res) => {
       transactionId: tran_id
     });
   }
+});
+
+// Add root route
+app.get('/', (req, res) => {
+  res.send(`
+    <h1>WalletLogs Payment Backend</h1>
+    <p>The API is running successfully!</p>
+    <p>Deployed at: https://walletlogs-sslc-backend.onrender.com</p>
+    <p>Current time: ${new Date().toISOString()}</p>
+    <h2>Available Endpoints:</h2>
+    <ul>
+      <li><code>POST /initiate-payment</code> - Start a payment transaction</li>
+      <li><code>GET /payment-status/:tran_id</code> - Check payment status</li>
+      <li><code>POST /validate-payment</code> - Validate a payment</li>
+      <li><code>POST /check-payment-with-sslc/:tran_id</code> - Check with SSL Commerce</li>
+      <li><code>POST /test-success/:tran_id</code> - Test successful payment</li>
+      <li><code>POST /test-fail/:tran_id</code> - Test failed payment</li>
+    </ul>
+  `);
 });
 
 const PORT = process.env.PORT || 3000;
